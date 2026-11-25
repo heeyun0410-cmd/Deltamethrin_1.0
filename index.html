@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DELTAMETHRIN</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&family=Noto+Serif+KR:wght@300;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- 공용 SVG 필터/패턴: 목탄 질감 -->
+<svg id="defs" width="0" height="0" aria-hidden="true" style="position:absolute">
+  <defs>
+    <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="2" seed="7" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="6" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <filter id="rough2" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="turbulence" baseFrequency="0.08" numOctaves="3" seed="3" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="9" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <filter id="smudge" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="28"/></filter>
+    <pattern id="hatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(38)">
+      <line x1="0" y1="0" x2="0" y2="7" stroke="#141414" stroke-width="1.5" opacity=".5"/>
+    </pattern>
+    <pattern id="hatchD" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(-52)">
+      <line x1="0" y1="0" x2="0" y2="5" stroke="#141414" stroke-width="2" opacity=".75"/>
+    </pattern>
+    <radialGradient id="sunGlow">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="1"/>
+      <stop offset=".35" stop-color="#e3edf4" stop-opacity=".7"/>
+      <stop offset="1" stop-color="#e3edf4" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+</svg>
+
+<div id="frame">
+<div id="game" class="screen-title">
+
+  <!-- ============ 무대 ============ -->
+  <div id="stage">
+    <div id="bgA" class="bg"></div>
+    <div id="bgB" class="bg"></div>
+    <div id="chars">
+      <div class="slot" data-pos="left"></div>
+      <div class="slot" data-pos="center"></div>
+      <div class="slot" data-pos="right"></div>
+    </div>
+    <div id="whispers"></div>
+    <div id="illus" class="hidden"><div class="illus-frame"></div></div>
+    <div id="investigate" class="hidden"></div>
+    <div id="eyes" class="hidden"></div>
+  </div>
+
+  <!-- 화면 질감 -->
+  <div id="grain"></div>
+  <div id="vignette"></div>
+  <div id="redwash"></div>
+  <div id="fade"></div>
+
+  <!-- ============ 상단 ============ -->
+  <header id="topbar">
+    <div class="tb-chapter" id="tbChapter">PROLOGUE</div>
+    <div class="tb-loc" id="tbLoc"></div>
+    <div class="tb-right">
+      <button class="tb-btn" id="btnLog" title="지난 대사 (L)">기록</button>
+      <button class="tb-btn" id="btnMenu" title="메뉴 (Esc)">메뉴</button>
+    </div>
+  </header>
+
+  <!-- ============ 하단 대화창 ============ -->
+  <section id="dialog" class="hidden" aria-live="polite">
+    <div id="dlgName"></div>
+    <div id="dlgText"></div>
+    <div id="dlgNext">▼</div>
+    <div class="dlg-tools">
+      <button class="tool" id="btnInv" title="인벤토리 (I)"><span class="tool-ico"></span>소지품</button>
+      <button class="tool" id="btnAuto" title="자동 진행 (A)">자동</button>
+    </div>
+  </section>
+  <div id="hoverHint"></div>
+
+  <!-- ============ 선택지 ============ -->
+  <section id="choices" class="hidden">
+    <div class="ch-title" id="chTitle"></div>
+    <div class="ch-list" id="chList"></div>
+    <div class="ch-narr" id="chNarr"></div>
+  </section>
+
+  <!-- ============ 지도 ============ -->
+  <section id="map" class="hidden">
+    <div class="map-head"><span>하늘섬 · 마을 지도</span><em id="mapHint"></em></div>
+    <div class="map-body"><div id="mapArt"></div><div id="mapPins"></div></div>
+    <div class="map-foot" id="mapMsg">방향키로 장소를 고르고 Space/Enter로 이동합니다.</div>
+  </section>
+
+  <!-- ============ 문서 ============ -->
+  <section id="doc" class="hidden"><div class="doc-paper" id="docPaper"></div><div class="doc-hint">Space</div></section>
+
+  <!-- ============ 스페이스 홀드 ============ -->
+  <section id="hold" class="hidden">
+    <div class="hold-art" id="holdArt"></div>
+    <div class="hold-bubbles" id="holdBubbles"></div>
+    <div class="hold-ui">
+      <div class="hold-label" id="holdLabel"></div>
+      <div class="hold-bar"><i id="holdFill"></i></div>
+    </div>
+  </section>
+
+  <!-- ============ 3D 1인칭 ============ -->
+  <section id="fp" class="hidden">
+    <div id="fpView"><div id="fpWorld"></div></div>
+    <div id="fpText"></div>
+    <div id="fpHelp">↑ 앞으로 · ← → 돌아보기</div>
+  </section>
+
+  <!-- ============ 카드/타이틀 ============ -->
+  <div id="card" class="hidden"><div class="card-label" id="cardLabel"></div><div class="card-title" id="cardTitle"></div></div>
+  <div id="bigText" class="hidden"></div>
+  <div id="bigFace" class="hidden"></div>
+  <div id="toast"></div>
+
+  <!-- ============ 팝업 ============ -->
+  <div id="popup" class="modal hidden">
+    <div class="pop-box">
+      <div class="pop-msg" id="popMsg"></div>
+      <div class="pop-btns"><button id="popNo">취소</button><button id="popYes">확인</button></div>
+    </div>
+  </div>
+
+  <!-- ============ 인벤토리 ============ -->
+  <div id="inv" class="modal hidden">
+    <div class="panel inv-panel">
+      <div class="panel-head"><h2>소지품</h2><button class="x" data-close="inv">닫기</button></div>
+      <div class="inv-wrap">
+        <div class="inv-grid" id="invGrid"></div>
+        <div class="inv-detail" id="invDetail"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 메뉴 ============ -->
+  <div id="menu" class="modal hidden">
+    <div class="panel menu-panel">
+      <div class="panel-head"><h2>MENU</h2><button class="x" data-close="menu">닫기</button></div>
+      <div class="menu-list">
+        <button data-act="resume">계속하기</button>
+        <button data-act="save">저장하기</button>
+        <button data-act="load">불러오기</button>
+        <button data-act="inv">소지품</button>
+        <button data-act="settings">설정</button>
+        <button data-act="title">타이틀로</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="slots" class="modal hidden">
+    <div class="panel slots-panel">
+      <div class="panel-head"><h2 id="slotsTitle">SAVE</h2><button class="x" data-close="slots">닫기</button></div>
+      <div class="slot-list" id="slotList"></div>
+      <div class="slots-note" id="slotsNote"></div>
+    </div>
+  </div>
+
+  <div id="settings" class="modal hidden">
+    <div class="panel set-panel">
+      <div class="panel-head"><h2>SETTINGS</h2><button class="x" data-close="settings">닫기</button></div>
+      <label class="set-row"><span>텍스트 속도</span><input type="range" id="setSpeed" min="0" max="100"><output id="outSpeed"></output></label>
+      <label class="set-row"><span>배경음악</span><input type="range" id="setBgm" min="0" max="100"><output id="outBgm"></output></label>
+      <label class="set-row"><span>효과음</span><input type="range" id="setSfx" min="0" max="100"><output id="outSfx"></output></label>
+      <label class="set-row"><span>화면 흔들림 · 깜빡임</span><select id="setFx"><option value="1">켜기</option><option value="0">약하게</option></select></label>
+      <div class="set-row"><span>전체 화면</span><button id="btnFull">전환</button></div>
+      <p class="set-note">조작: Space/Enter 진행 · 방향키 선택 · I 소지품 · Esc 메뉴 · L 기록</p>
+    </div>
+  </div>
+
+  <div id="log" class="modal hidden">
+    <div class="panel log-panel">
+      <div class="panel-head"><h2>기록</h2><button class="x" data-close="log">닫기</button></div>
+      <div class="log-list" id="logList"></div>
+    </div>
+  </div>
+
+  <!-- ============ 엔딩 ============ -->
+  <section id="ending" class="hidden">
+    <div class="end-label" id="endLabel"></div>
+    <div class="end-title" id="endTitle"></div>
+    <div class="end-sub" id="endSub"></div>
+  </section>
+  <section id="credits" class="hidden"><div class="cr-roll" id="crRoll"></div></section>
+  <section id="summary" class="hidden">
+    <div class="sum-box" id="sumBox"></div>
+  </section>
+
+  <!-- ============ 타이틀 ============ -->
+  <section id="title">
+    <div class="ti-art" id="tiArt"></div>
+    <div class="ti-text">
+      <h1>DELTAMETHRIN</h1>
+      <p class="ti-sub">델타메트린</p>
+      <p class="ti-q">당신의 선택은 정말 당신의 것입니까?</p>
+    </div>
+    <nav class="ti-menu">
+      <button data-ti="new">새로 시작</button>
+      <button data-ti="continue" id="tiContinue">이어하기</button>
+      <button data-ti="load">불러오기</button>
+      <button data-ti="settings">설정</button>
+    </nav>
+    <p class="ti-foot">헤드폰 착용을 권장합니다 · 약 20분 · 일부 장면에 깜짝 놀라는 연출이 있습니다</p>
+  </section>
+
+</div>
+</div>
+
+<script src="js/data/assets.js"></script>
+<script src="js/data/art.js"></script>
+<script src="js/data/items.js"></script>
+<script src="js/data/story.js"></script>
+<script src="js/engine/audio.js"></script>
+<script src="js/engine/state.js"></script>
+<script src="js/engine/ui.js"></script>
+<script src="js/engine/choices.js"></script>
+<script src="js/engine/interactions.js"></script>
+<script src="js/engine/scene3d.js"></script>
+<script src="js/engine/runner.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
